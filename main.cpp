@@ -35,10 +35,6 @@ int main() {
     std::cout<<"\nWprowadz macierz "<<newOrder<<"x"<<newOrder<<":\n";
     std::cin>>ownMatrix;
     std::cout<<"Wprowadzona macierz:\n"<<ownMatrix<<ownMatrix.calcDet()<<" - to wyznacznik wprowadzonej macierzy\n";
-    delete(&ownMatrix);
-    std::cout<<"Powyzej wywolano destruktor wprowadzonej macierzy.\n";
-
-
 
     return 0;
 
