@@ -10,55 +10,58 @@ using std::istream;
 using std::domain_error;
 
 
-Matrix::Matrix(int order) : matrixOrder(order) {
+Matrix::Matrix(int order) : order_(order) {
     allocation();
-    for (int i = 0; i < matrixOrder; i++) {
-        for (int j = 0; j < matrixOrder; j++) {
-            values[i][j] = 0;
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            cells_[i][j] = 0;
         }
     }
     std::cout << "A matrix " << this << " of order " << order << " without any parameters created\n";
 }
 
-Matrix::Matrix(int order, char constructorParam) : matrixOrder(order) {
+/* Following constructor can be provided with a parameter, so a specific type of matrix will be created.
+ * Parameter "1" creates identity matrix.
+ * Parameter "2" fills the matrix with random values between 0 and 10*/
+Matrix::Matrix(int order, char constructorParam) : order_(order) {
     allocation();
-    for (int i = 0; i < matrixOrder; i++) {
-        for (int j = 0; j < matrixOrder; j++) {
-            if (i == j and constructorParam == 1) values[i][j] = 1;
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            if (i == j and constructorParam == 1) cells_[i][j] = 1;
             else if (constructorParam == 2) {
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_int_distribution<> dis(1, 1000);
-                values[i][j] = double(dis(gen)) / 100;
-            } else values[i][j] = 0;
+                cells_[i][j] = double(dis(gen)) / 100;
+            } else cells_[i][j] = 0;
         }
     }
     std::cout << "A matrix " << this << " of order " << order << " with parameter " << int(constructorParam)
               << " created\n";
 }
 
-Matrix::Matrix() : matrixOrder(1) {
+Matrix::Matrix() : order_(1) {
     allocation();
-    values[0][0] = 0;
+    cells_[0][0] = 0;
     std::cout << "A default matrix " << this << " of order 1 created\n";
 }
 
 Matrix::~Matrix() {
-    for (int i = 0; i < matrixOrder; i++) {
-        delete[] values[i];
+    for (int i = 0; i < order_; i++) {
+        delete[] cells_[i];
     }
-    delete[] values;
+    delete[] cells_;
     std::cout << "A matrix " << this << " of some order destructed. Sad :<\n";
 }
 
-Matrix::Matrix(const Matrix &matrix) : matrixOrder(matrix.matrixOrder) {
+Matrix::Matrix(const Matrix &matrix) : order_(matrix.order_) {
     allocation();
-    for (int i = 0; i < matrixOrder; i++) {
-        for (int j = 0; j < matrixOrder; j++) {
-            values[i][j] = matrix.values[i][j];
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            cells_[i][j] = matrix.cells_[i][j];
         }
     }
-    std::cout << "A matrix " << this << " of order " << matrixOrder << " copied\n";
+    std::cout << "A matrix " << this << " of order " << order_ << " copied from "<< &matrix <<"\n";
 }
 
 Matrix &Matrix::operator=(const Matrix &matrix) {
@@ -66,56 +69,54 @@ Matrix &Matrix::operator=(const Matrix &matrix) {
         return *this;
     }
 
-    if (matrixOrder != matrix.matrixOrder) {
-        for (int i = 0; i < matrixOrder; i++) {
-            delete[] values[i];
+    if (order_ != matrix.order_) {
+        for (int i = 0; i < order_; i++) {
+            delete[] cells_[i];
         }
-        delete[] values;
+        delete[] cells_;
 
-        matrixOrder = matrix.matrixOrder;
+        order_ = matrix.order_;
         allocation();
     }
 
-    for (int i = 0; i < matrixOrder; i++) {
-        for (int j = 0; j < matrixOrder; j++) {
-            values[i][j] = matrix.values[i][j];
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            cells_[i][j] = matrix.cells_[i][j];
         }
     }
     return *this;
 }
 
 Matrix &Matrix::operator+=(const Matrix &matrix) {
-    int smallerOrder;
-    if (matrixOrder > matrix.matrixOrder) smallerOrder = matrix.matrixOrder;
-    else smallerOrder = matrixOrder;
-    for (int i = 0; i < smallerOrder; i++) {
-        for (int j = 0; j < smallerOrder; j++) {
-            values[i][j] += matrix.values[i][j];
+    if (order_ != matrix.order_)
+        throw std::domain_error("Error: matrices of differing orders cannot be added.");
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            cells_[i][j] += matrix.cells_[i][j];
         }
     }
     return *this;
 }
 
 Matrix &Matrix::operator-=(const Matrix &matrix) {
-    int smallerOrder;
-    if (matrixOrder > matrix.matrixOrder) smallerOrder = matrix.matrixOrder;
-    else smallerOrder = matrixOrder;
-    for (int i = 0; i < smallerOrder; i++) {
-        for (int j = 0; j < smallerOrder; j++) {
-            values[i][j] -= matrix.values[i][j];
+    if (order_ != matrix.order_)
+        throw std::domain_error("Error: matrices of differing orders cannot be subtracted.");
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            cells_[i][j] -= matrix.cells_[i][j];
         }
     }
     return *this;
 }
 
 Matrix &Matrix::operator*=(const Matrix &matrix) {
-    if (matrixOrder != matrix.matrixOrder)
+    if (order_ != matrix.order_)
         throw std::domain_error("Error: matrices of differing orders cannot be multiplicated.");
-    Matrix temp(matrixOrder);
-    for (int i = 0; i < matrixOrder; i++) {
-        for (int j = 0; j < matrixOrder; j++) {
-            for (int k = 0; k < matrixOrder; k++) {
-                temp.values[i][j] += (values[i][k] * matrix.values[k][j]);
+    Matrix temp(order_);
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            for (int k = 0; k < order_; k++) {
+                temp.cells_[i][j] += (cells_[i][k] * matrix.cells_[k][j]);
             }
         }
     }
@@ -123,9 +124,9 @@ Matrix &Matrix::operator*=(const Matrix &matrix) {
 }
 
 Matrix &Matrix::operator*=(double num) {
-    for (int i = 0; i < matrixOrder; i++) {
-        for (int j = 0; j < matrixOrder; j++) {
-            values[i][j] *= num;
+    for (int i = 0; i < order_; i++) {
+        for (int j = 0; j < order_; j++) {
+            cells_[i][j] *= num;
         }
     }
     return *this;
@@ -133,46 +134,46 @@ Matrix &Matrix::operator*=(double num) {
 
 double Matrix::calcDet() {
     double determinant = 0;
-    if (matrixOrder == 1) determinant = values[0][0];
-    else if (matrixOrder == 2) {
-        determinant = values[0][0] * values[1][1] - values[0][1] * values[1][0];
-    } else if (matrixOrder == 3) {
-        determinant = values[0][0] * values[1][1] * values[2][2] - values[0][0] * values[2][1] * values[1][2] +
-                      values[1][0] * values[2][1] * values[0][2] - values[1][0] * values[0][1] * values[2][2] +
-                      values[2][0] * values[0][1] * values[1][2] - values[2][0] * values[1][1] * values[0][2];
+    if (order_ == 1) determinant = cells_[0][0];
+    else if (order_ == 2) {
+        determinant = cells_[0][0] * cells_[1][1] - cells_[0][1] * cells_[1][0];
+    } else if (order_ == 3) {
+        determinant = cells_[0][0] * cells_[1][1] * cells_[2][2] - cells_[0][0] * cells_[2][1] * cells_[1][2] +
+                      cells_[1][0] * cells_[2][1] * cells_[0][2] - cells_[1][0] * cells_[0][1] * cells_[2][2] +
+                      cells_[2][0] * cells_[0][1] * cells_[1][2] - cells_[2][0] * cells_[1][1] * cells_[0][2];
     } else {
         Matrix sourceCopy(*this);
-        if (sourceCopy.values[0][0] == 0) {
-            for (int i = 1; i < sourceCopy.matrixOrder; i++) {
-                if (sourceCopy.values[0][i] != 0) {
+        if (sourceCopy.cells_[0][0] == 0) {
+            for (int i = 1; i < sourceCopy.order_; i++) {
+                if (sourceCopy.cells_[0][i] != 0) {
                     sourceCopy.swapRows(0, i);
                     break;
                 }
             }
         }
-        if (sourceCopy.values[0][0] == 0) return 0;
-        Matrix newMinor(matrixOrder - 1);
-        for (int i = 1; i < matrixOrder; i++) {
-            for (int j = 1; j < matrixOrder; j++) {
-                newMinor.values[i - 1][j - 1] = sourceCopy.values[0][0] * sourceCopy.values[i][j] -
-                                                sourceCopy.values[i][0] * sourceCopy.values[0][j];
+        if (sourceCopy.cells_[0][0] == 0) return 0;
+        Matrix newMinor(order_ - 1);
+        for (int i = 1; i < order_; i++) {
+            for (int j = 1; j < order_; j++) {
+                newMinor.cells_[i - 1][j - 1] = sourceCopy.cells_[0][0] * sourceCopy.cells_[i][j] -
+                                                sourceCopy.cells_[i][0] * sourceCopy.cells_[0][j];
             }
         }
-        determinant = newMinor.calcDet() / (pow(sourceCopy.values[0][0], matrixOrder - 2));
+        determinant = newMinor.calcDet() / (pow(sourceCopy.cells_[0][0], order_ - 2));
     }
     return determinant;
 }
 
 void Matrix::swapRows(int row1, int row2) {
-    double *temp = values[row1];
-    values[row1] = values[row2];
-    values[row2] = temp;
+    double *temp = cells_[row1];
+    cells_[row1] = cells_[row2];
+    cells_[row2] = temp;
 }
 
 void Matrix::allocation() {
-    values = new double *[matrixOrder];
-    for (int i = 0; i < matrixOrder; i++) {
-        values[i] = new double[matrixOrder];
+    cells_ = new double *[order_];
+    for (int i = 0; i < order_; i++) {
+        cells_[i] = new double[order_];
     }
 }
 
@@ -202,9 +203,9 @@ Matrix operator*(double num, const Matrix &matrix) {
 }
 
 std::ostream &operator<<(std::ostream &outputStream, const Matrix &matrix) {
-    for (int i = 0; i < matrix.matrixOrder; i++) {
-        for (int j = 0; j < matrix.matrixOrder; j++) {
-            outputStream << matrix.values[i][j] << " ";
+    for (int i = 0; i < matrix.order_; i++) {
+        for (int j = 0; j < matrix.order_; j++) {
+            outputStream << matrix.cells_[i][j] << " ";
         }
         outputStream << "\n";
     }
@@ -212,9 +213,9 @@ std::ostream &operator<<(std::ostream &outputStream, const Matrix &matrix) {
 }
 
 istream &operator>>(std::istream &inputStream, Matrix &matrix) {
-    for (int i = 0; i < matrix.matrixOrder; i++) {
-        for (int j = 0; j < matrix.matrixOrder; j++) {
-            inputStream >> matrix.values[i][j];
+    for (int i = 0; i < matrix.order_; i++) {
+        for (int j = 0; j < matrix.order_; j++) {
+            inputStream >> matrix.cells_[i][j];
         }
     }
     return inputStream;

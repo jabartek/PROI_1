@@ -35,8 +35,8 @@ public:
     void swapRows(int, int);
 
 private:
-    int matrixOrder;
-    double **values;
+    int order_;
+    double **cells_;
 
     void allocation();
 };
