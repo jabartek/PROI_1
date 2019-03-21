@@ -5,6 +5,8 @@
 
 int userMenu();
 
+int readInt();
+
 void testAction(int);
 
 

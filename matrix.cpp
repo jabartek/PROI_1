@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <cmath>
+#include <string>
 #include <random>
 
 #include "matrix.h"
@@ -10,7 +11,7 @@ using std::istream;
 using std::domain_error;
 
 
-Matrix::Matrix(int order) : order_(order) {
+Matrix::Matrix(int order) : order_((order > 0) ? order : 1) {
     allocation();
     for (int i = 0; i < order_; i++) {
         for (int j = 0; j < order_; j++) {
@@ -215,8 +216,23 @@ std::ostream &operator<<(std::ostream &outputStream, const Matrix &matrix) {
 istream &operator>>(std::istream &inputStream, Matrix &matrix) {
     for (int i = 0; i < matrix.order_; i++) {
         for (int j = 0; j < matrix.order_; j++) {
-            inputStream >> matrix.cells_[i][j];
+            std::string temp;
+            double number = 0;
+            bool error = false;
+            do {
+                std::cin >> temp;
+                try {
+                    number = std::stod(temp);
+                    error = false;
+                }
+                catch (std::invalid_argument) {
+                    std::cout << "\nInvalid input at x = " << i << ", y = " << j << " Try again: ";
+                    error = true;
+                }
+            } while (error);
+            matrix.cells_[i][j] = number;
         }
     }
     return inputStream;
 }
+

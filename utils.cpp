@@ -10,7 +10,8 @@ void testAction(int action) {
     if (action == 1) {
         int size;
         std::cout << "Dodawanie.\nPodaj wielkosc macierzy: ";
-        std::cin >> size;
+        size = readInt();
+        size = ((size > 0) ? size : 1);
         Matrix m1(size);
         Matrix m2(size);
         std::cout << "Wprowadz 1. macierz o wielkosci " << size << "x" << size << ": ";
@@ -22,7 +23,8 @@ void testAction(int action) {
     if (action == 2) {
         int size;
         std::cout << "Odejmowanie.\nPodaj wielkosc macierzy: ";
-        std::cin >> size;
+        size = readInt();
+        size = ((size > 0) ? size : 1);
         Matrix m1(size);
         Matrix m2(size);
         std::cout << "Wprowadz 1. macierz o wielkosci " << size << "x" << size << ": ";
@@ -35,7 +37,8 @@ void testAction(int action) {
         int size;
         int coeff;
         std::cout << "Mnozenie przez stala.\nPodaj wielkosc macierzy: ";
-        std::cin >> size;
+        size = readInt();
+        size = ((size > 0) ? size : 1);
         Matrix m1(size);
         Matrix m2(size);
         std::cout << "Wprowadz macierz o wielkosci " << size << "x" << size << ": ";
@@ -47,7 +50,8 @@ void testAction(int action) {
     if (action == 4) {
         int size;
         std::cout << "Mnozenie macierzy.\nPodaj wielkosc macierzy: ";
-        std::cin >> size;
+        size = readInt();
+        size = ((size > 0) ? size : 1);
         Matrix m1(size);
         Matrix m2(size);
         std::cout << "Wprowadz 1. macierz o wielkosci " << size << "x" << size << ": ";
@@ -60,9 +64,9 @@ void testAction(int action) {
     if (action == 5) {
         int size;
         std::cout << "Wyznacznik.\nPodaj wielkosc macierzy: ";
-        std::cin >> size;
+        size = readInt();
+        size = ((size > 0) ? size : 1);
         Matrix m1(size);
-        Matrix m2(size);
         std::cout << "Wprowadz macierz o wielkosci " << size << "x" << size << ": ";
         std::cin >> m1;
         std::cout << "\n" << m1.calcDet() << " - to wyznacznik wprowadzonej macierzy\n";
@@ -73,10 +77,28 @@ void testAction(int action) {
 int userMenu() {
     std::cout
             << "1 - dodawanie, 2 - odejmowanie, 3 - mnozenie przez stala,\n4 - mnozenie macierzy, 5 - wyznacznik, 6 - zakoncz\nWybierz akcje: ";
-    int action;
-    std::cin >> action;
+    int action = readInt();
     if (action != 1 && action != 2 && action != 3 && action != 4 && action != 5)
         return 1;
     testAction(action);
     return 0;
+}
+
+int readInt() {
+    std::string temp;
+    int action = 0;
+    bool error = false;
+    do {
+        std::cin >> temp;
+        try {
+            action = std::stoi(temp);
+            error = false;
+        }
+        catch (std::invalid_argument) {
+            std::cout << "\nInvalid input! Try again: ";
+            error = true;
+        }
+    } while (error);
+
+    return action;
 }
